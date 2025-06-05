@@ -1,3 +1,7 @@
+# Ignore MySQL socket and data files
+volume-data/mysql_keycloak_data/mysql.sock
+volume-data/
+
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
