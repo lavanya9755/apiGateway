@@ -90,6 +90,124 @@ This makes it easier to hide backend service URLs from the clients and centraliz
 * You are building an API Gateway in Spring and want full control in Java code.
 * You have a few routes and want to define them explicitly.
 * You're experimenting with custom Spring WebFlux-based routers.
+---
+
+# ✅ 1. **What is Circuit Breaker using Resilience4j in Spring Boot?**
+
+### 🔌 Problem it solves:
+When a **remote service** (like inventory or payment) is down or slow, your app will:
+* Keep calling it repeatedly.
+* Waste resources.
+* Cause **cascading failures**.
+
+### 🛡️ Solution: Circuit Breaker Pattern
+It "wraps" remote calls and monitors failures.
+* If the failures cross a threshold ➝ it **opens the circuit** and stops calling the broken service temporarily.
+* After a wait, it **half-opens** to test if the service is back.
+* If healthy, it **closes** again.
+
+---
+
+### 🔧 In Spring Boot (with Resilience4j)
+
+You just annotate your method:
+
+```java
+@CircuitBreaker(name = "inventoryService", fallbackMethod = "fallbackInventory")
+public ResponseEntity<?> callInventoryService() {
+    return restTemplate.getForEntity("http://inventory/api/check", String.class);
+}
+
+public ResponseEntity<?> fallbackInventory(Exception ex) {
+    return ResponseEntity.ok("Inventory service is down. Please try later.");
+}
+```
+
+---
+
+## ✅ 2. **Explanation of application.properties config code (line-by-line)**
+
+---
+
+### 🔹 **Actuator Endpoints**
+```properties
+management.health.circuitbreakers.enabled=true
+```
+➡ Enables Circuit Breaker metrics in the `/actuator/health` endpoint.
+```properties
+management.endpoints.web.exposure.include=*
+```
+➡ Exposes **all actuator endpoints** (like `/actuator/health`, `/actuator/circuitbreakers`).
+```properties
+management.endpoint.health.show-details=always
+```
+➡ Shows full health info in actuator responses (not just “UP/DOWN”).
+
+---
+
+### 🔹 **Resilience4j Circuit Breaker Config**
+
+```properties
+resilience4j.circuitbreaker.configs.default.registerHealthIndicator=true
+```
+
+➡ Registers health status of each circuit breaker with Spring Boot Actuator.
+
+```properties
+resilience4j.circuitbreaker.configs.default.slidingWindowType=COUNT_BASED
+```
+
+➡ Sliding window counts **number of calls** (instead of time-based window).
+
+```properties
+resilience4j.circuitbreaker.configs.default.slidingWindowSize=10
+```
+
+➡ Tracks last **10 calls** to check failure rate.
+
+```properties
+resilience4j.circuitbreaker.configs.default.failureRateThreshold=50
+```
+
+➡ If **50% or more** of last 10 calls failed, open the circuit.
+
+```properties
+resilience4j.circuitbreaker.configs.default.waitDurationInOpenState=5s
+```
+
+➡ Once open, wait **5 seconds** before transitioning to half-open (test state).
+
+```properties
+resilience4j.circuitbreaker.configs.default.permittedNumberOfCallsInHalfOpenState=3
+```
+
+➡ Allow only **3 test calls** in half-open state to decide whether to close the circuit again.
+
+```properties
+resilience4j.circuitbreaker.configs.default.automaticTransitionFromOpenToHalfOpenEnabled=true
+```
+
+➡ Automatically move from **open → half-open** after wait duration (instead of requiring a manual trigger).
+
+---
+
+### 🔹 **Timeout Settings**
+
+```properties
+resilience4j.timelimiter.configs.default.timeout-duration=3s
+```
+
+➡ Any remote call exceeding **3 seconds** will be considered a **timeout failure**.
+
+---
+
+### ✅ Summary
+
+This config:
+
+* Makes your microservice **resilient** to slow/downstream failures.
+* Shows status in **actuator** for monitoring.
+* Controls how many failures open the circuit, how long to wait, how to retry, and when to recover.
 
 ---
 
