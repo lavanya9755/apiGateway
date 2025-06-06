@@ -200,6 +200,8 @@ resilience4j.timelimiter.configs.default.timeout-duration=3s
 ➡ Any remote call exceeding **3 seconds** will be considered a **timeout failure**.
 
 ---
+![image](https://github.com/user-attachments/assets/f567dc2b-2b38-4e49-8552-9b84d3680580)
+
 
 ### ✅ Summary
 
