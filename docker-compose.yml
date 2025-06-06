@@ -1,7 +1,7 @@
 version: '3.8'
 services:
 # container 1
-  keycloak-mysql: 
+  keycloak-mysql:
     container_name: keycloak-mysql
     image: mysql:8
     volumes:
@@ -11,7 +11,7 @@ services:
       MYSQL_DATABASE: keycloak
       MYSQL_USER: keycloak
       MYSQL_PASSWORD: password
-# container2 
+# container2
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:24.0.1
